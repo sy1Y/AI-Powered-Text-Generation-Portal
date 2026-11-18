@@ -1,0 +1,434 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Dialogue Generator</title>
+
+    <style>
+        :root {
+            --cream: #f7f2e9;
+            --paper: #fffdf8;
+            --ink: #29251f;
+            --muted: #80776b;
+            --wine: #842e3d;
+            --wine-dark: #63202d;
+            --gold: #b99660;
+            --border: #dfd3c2;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: Georgia, "Times New Roman", serif;
+            color: var(--ink);
+            background-color: var(--cream);
+            background-image:
+                radial-gradient(
+                    circle at 10% 15%,
+                    rgba(185, 150, 96, 0.10),
+                    transparent 32%
+                ),
+                radial-gradient(
+                    circle at 90% 85%,
+                    rgba(132, 46, 61, 0.06),
+                    transparent 35%
+                ),
+                repeating-linear-gradient(
+                    0deg,
+                    transparent 0px,
+                    transparent 5px,
+                    rgba(80, 60, 40, 0.012) 6px
+                );
+            overflow-x: hidden;
+        }
+
+        /* Top navigation */
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 22px 7%;
+            border-bottom: 1px solid var(--border);
+            background: rgba(255, 253, 248, 0.78);
+        }
+
+        .logo {
+            font-family: Georgia, serif;
+            font-size: 22px;
+            font-weight: bold;
+            letter-spacing: 3px;
+            color: var(--wine);
+        }
+
+        .header-info {
+            font-family: Arial, sans-serif;
+            font-size: 11px;
+            letter-spacing: 2px;
+            color: var(--muted);
+        }
+
+        /* Decorative film strips */
+        .film-strip {
+            position: fixed;
+            top: 110px;
+            bottom: 40px;
+            width: 42px;
+            opacity: 0.16;
+            pointer-events: none;
+            z-index: 0;
+            border-left: 2px solid #a58b69;
+            border-right: 2px solid #a58b69;
+            background:
+                repeating-linear-gradient(
+                    to bottom,
+                    #a58b69 0px,
+                    #a58b69 8px,
+                    transparent 8px,
+                    transparent 27px
+                ) left 6px top / 7px 27px repeat-y,
+                repeating-linear-gradient(
+                    to bottom,
+                    #a58b69 0px,
+                    #a58b69 8px,
+                    transparent 8px,
+                    transparent 27px
+                ) right 6px top / 7px 27px repeat-y;
+        }
+
+        .film-left {
+            left: 3%;
+            transform: rotate(-5deg);
+        }
+
+        .film-right {
+            right: 3%;
+            transform: rotate(5deg);
+        }
+
+        main {
+            position: relative;
+            z-index: 1;
+            max-width: 900px;
+            margin: 42px auto 35px;
+            padding: 0 28px;
+        }
+
+        .intro {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .eyebrow {
+            font-family: Arial, sans-serif;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 4px;
+            color: var(--wine);
+        }
+
+        h1 {
+            font-size: clamp(35px, 5vw, 57px);
+            line-height: 1.1;
+            margin: 17px 0;
+            font-weight: 500;
+            letter-spacing: -1.5px;
+        }
+
+        .description {
+            font-family: Arial, sans-serif;
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.8;
+            margin: 0 auto;
+            max-width: 540px;
+        }
+
+        .ornament {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 16px;
+            margin-top: 25px;
+            color: var(--gold);
+            font-size: 17px;
+        }
+
+        .ornament::before,
+        .ornament::after {
+            content: "";
+            width: 80px;
+            height: 1px;
+            background: var(--gold);
+            opacity: 0.65;
+        }
+
+        /* Script paper card */
+        .script-card {
+            position: relative;
+            background: var(--paper);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 32px 38px;
+            min-height: 245px;
+            box-shadow:
+                0 12px 35px rgba(78, 55, 35, 0.07),
+                0 2px 6px rgba(78, 55, 35, 0.04);
+        }
+
+        .script-card::before {
+            content: "";
+            position: absolute;
+            inset: 8px;
+            border: 1px solid rgba(185, 150, 96, 0.23);
+            pointer-events: none;
+        }
+
+        .script-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding-bottom: 18px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .script-title {
+            color: var(--wine);
+            font-size: 19px;
+            font-weight: bold;
+        }
+
+        .scene-label {
+            font-family: Arial, sans-serif;
+            color: var(--muted);
+            font-size: 11px;
+            letter-spacing: 2px;
+            white-space: nowrap;
+        }
+
+        #output {
+            margin-top: 27px;
+            color: #393129;
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: 17px;
+            line-height: 1.9;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+            min-height: 90px;
+        }
+
+        .placeholder {
+            color: #9a8f80 !important;
+            font-style: italic;
+        }
+
+        .actions {
+            display: flex;
+            justify-content: center;
+            margin-top: 24px;
+        }
+
+        #generateBtn {
+            width: 100%;
+            padding: 17px 24px;
+            background: var(--wine);
+            color: #fffaf2;
+            border: 1px solid var(--wine);
+            border-radius: 4px;
+            font-family: Arial, sans-serif;
+            font-size: 13px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition:
+                background 0.2s ease,
+                transform 0.2s ease,
+                box-shadow 0.2s ease;
+        }
+
+        #generateBtn:hover:not(:disabled) {
+            background: var(--wine-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(132, 46, 61, 0.15);
+        }
+
+        #generateBtn:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+        }
+
+        .loading-indicator {
+            display: inline-block;
+            width: 13px;
+            height: 13px;
+            border: 2px solid rgba(255,255,255,0.35);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            vertical-align: middle;
+            margin-right: 9px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        footer {
+            margin-top: 27px;
+            text-align: center;
+            color: var(--muted);
+            font-family: Arial, sans-serif;
+            font-size: 10px;
+            letter-spacing: 2px;
+            line-height: 1.8;
+        }
+
+        @media (max-width: 700px) {
+            header {
+                padding: 20px 6%;
+            }
+
+            .logo {
+                font-size: 17px;
+            }
+
+            .header-info {
+                font-size: 9px;
+                letter-spacing: 1px;
+            }
+
+            .film-strip {
+                display: none;
+            }
+
+            main {
+                margin-top: 35px;
+                padding: 0 18px;
+            }
+
+            .script-card {
+                padding: 25px 23px;
+            }
+
+            #output {
+                font-size: 16px;
+            }
+
+            .script-title {
+                font-size: 16px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+
+    <!-- Decorative vintage film strips -->
+    <div class="film-strip film-left" aria-hidden="true"></div>
+    <div class="film-strip film-right" aria-hidden="true"></div>
+
+    <main>
+
+        <section class="intro">
+            <div class="eyebrow">THE ART OF AI STORYTELLING</div>
+
+            <h1>Movie Dialogue<br>Generator</h1>
+
+            <p class="description">
+                A little cinematic inspiration, powered by artificial
+                intelligence. Generate original movie-style dialogue
+                using a custom-trained nanoGPT model.
+            </p>
+
+            <div class="ornament" aria-hidden="true">✦</div>
+        </section>
+
+        <section class="script-card">
+            <div class="script-header">
+                <span class="script-title">✧ The Generated Script</span>
+            </div>
+
+            <div
+                id="output"
+                class="placeholder"
+                role="status"
+                aria-live="polite"
+                aria-atomic="true"
+            >Your next scene begins here. Click the button below to generate dialogue...</div>
+        </section>
+
+        <div class="actions">
+            <button
+                id="generateBtn"
+                type="button"
+                onclick="generateText()"
+            >
+                ✦ GENERATE DIALOGUE
+            </button>
+        </div>
+
+        <footer>
+            CHARACTER-LEVEL GPT · TRAINED ON MOVIE DIALOGUE
+            <div>AN EXPERIMENT IN GENERATIVE AI</div>
+        </footer>
+
+    </main>
+
+    <script>
+        async function generateText() {
+            const button = document.getElementById("generateBtn");
+            const output = document.getElementById("output");
+
+            button.disabled = true;
+            button.innerHTML =
+                '<span class="loading-indicator"></span>GENERATING...';
+
+            output.classList.add("placeholder");
+            output.textContent =
+                "The camera is rolling... Your scene is being written.";
+
+            try {
+                const response = await fetch("/generate");
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(
+                        data.error || "Text generation failed."
+                    );
+                }
+
+                output.classList.remove("placeholder");
+                output.textContent = data.text;
+
+            } catch (error) {
+                output.classList.add("placeholder");
+                output.textContent =
+                    "Something went wrong: " + error.message;
+
+            } finally {
+                button.disabled = false;
+                button.textContent = "✦ GENERATE DIALOGUE";
+            }
+        }
+    </script>
+
+</body>
+</html>

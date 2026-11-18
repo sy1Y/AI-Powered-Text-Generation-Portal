@@ -216,3 +216,17 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+
+# ==========================================
+nanoGPT
+# ==========================================
+
+
+# Generated tokenized datasets
+myNanoGPT/data/movies/train.bin
+myNanoGPT/data/movies/val.bin
+
+# Old model - keep locally
+myNanoGPT/out_movies/
+
